@@ -104,6 +104,12 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Vercel : s'assurer que les redirections restent sur le même domaine
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
     async signIn({ user, account, profile }) {
       // Cette fonction est appelée après authorize
       // Si authorize retourne null ou lance une erreur, cette fonction ne sera pas appelée

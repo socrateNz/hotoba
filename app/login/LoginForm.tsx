@@ -2,11 +2,10 @@
 
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +14,20 @@ export default function LoginForm() {
   const [seeding, setSeeding] = useState(false);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
 
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const rawCallback = searchParams.get("callbackUrl") ?? "/";
+
+  // Normaliser callbackUrl pour Vercel : si URL absolue, extraire le pathname (évite open redirect)
+  const callbackUrl = (() => {
+    try {
+      if (rawCallback.startsWith("http")) {
+        const u = new URL(rawCallback);
+        return u.pathname || "/";
+      }
+      return rawCallback.startsWith("/") ? rawCallback : "/";
+    } catch {
+      return "/";
+    }
+  })();
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -47,7 +59,9 @@ export default function LoginForm() {
       }
       
       if (res?.ok) {
-        router.push(callbackUrl);
+        // Rechargement complet pour Vercel : garantit que le cookie de session
+        // est envoyé avant que le middleware vérifie l'accès
+        window.location.href = callbackUrl;
       }
     } catch (err: any) {
       console.error("Erreur de connexion:", err);

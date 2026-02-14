@@ -2,12 +2,10 @@
 
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserPlus, AlertCircle } from "lucide-react";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [form, setForm] = useState({
     full_name: "",
     email: "",
@@ -63,8 +61,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // Redirection vers la réservation
-      router.push("/reservation");
+      // Rechargement complet pour Vercel : garantit que le cookie de session est envoyé
+      window.location.href = "/reservation";
     } catch (e: any) {
       setError(e.message ?? "Erreur lors de la création du compte");
       setLoading(false);
